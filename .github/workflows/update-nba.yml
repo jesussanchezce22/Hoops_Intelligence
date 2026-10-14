@@ -1,0 +1,41 @@
+
+name: Update NBA Data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install nba_api pandas requests
+
+      - name: Generate NBA statistics
+        run: python update_nba_data.py
+
+      - name: Check generated CSV
+        run: test -s players.csv
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add players.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Update NBA player statistics"
+            git push
+          fi

@@ -1,0 +1,46 @@
+
+name: Test ESPN Connection
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-espn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Test ESPN API
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.request
+          import urllib.error
+
+          url = (
+              "https://site.api.espn.com/apis/site/v2/"
+              "sports/basketball/nba/scoreboard"
+          )
+
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "User-Agent": "HoopsIntelligence/0.7",
+                  "Accept": "application/json"
+              }
+          )
+
+          try:
+              with urllib.request.urlopen(
+                  request, timeout=20
+              ) as response:
+                  data = json.load(response)
+                  events = data.get("events", [])
+                  print("ESPN CONNECTION: SUCCESS")
+                  print("Events returned:", len(events))
+                  print("API response is valid JSON.")
+          except Exception as error:
+              print("ESPN CONNECTION: FAILED")
+              print(type(error).__name__, str(error))
+              raise
+          PY
